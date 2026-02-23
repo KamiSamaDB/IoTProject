@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IoT Access Control</title>
+  <style>
+    :root {
+      --bg:        #0f1117;
+      --surface:   #1c1f2e;
+      --surface2:  #12152080;
+      --border:    #2e3250;
+      --accent:    #4f8ef7;
+      --green:     #2dd4a0;
+      --red:       #f7566a;
+      --amber:     #f0b429;
+      --text:      #e1e4f0;
+      --muted:     #7880a4;
+      --radius:    12px;
+      --font:      'Segoe UI', system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 3rem;
+      gap: 2rem;
+    }
+
+    /*  Header  */
+    header { text-align: center; }
+    header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: .02em; color: var(--accent); }
+    header h1 span { color: var(--text); }
+    header p { font-size: .85rem; color: var(--muted); margin-top: .3rem; }
+
+    /* Shared section wrapper */
+    .section {
+      width: 100%;
+      max-width: 820px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .section-title {
+      padding: .8rem 1.2rem;
+      font-size: .8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      background: #ffffff08;
+    }
+
+    /* Permission matrix */
+    #matrix-wrap { padding: 1.2rem; overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { padding: .6rem .9rem; text-align: center; vertical-align: middle; }
+    th { font-size: .75rem; font-weight: 600; text-transform: capitalize;
+         color: var(--muted); letter-spacing: .06em; }
+    th.row-head { text-align: left; color: var(--text); font-size: .85rem; }
+    td.row-label { text-align: left; font-size: .85rem; font-weight: 500;
+      text-transform: capitalize; padding-left: .5rem; }
+    td.row-label .pub-tag { display: inline-flex; align-items: center; gap: .4rem; }
+    td.row-label .pub-icon { width: 8px; height: 8px; border-radius: 50%;
+      background: var(--amber); flex-shrink: 0; }
+    tr:not(:last-child) td, tr:not(:last-child) th { border-bottom: 1px solid var(--border); }
+
+    /* Access button */
+    .acc-btn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .35rem .85rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #ffffff08;
+      color: var(--muted);
+      font-size: .78rem; font-weight: 600; cursor: pointer;
+      transition: background .2s, color .2s, border-color .2s, transform .1s;
+      white-space: nowrap;
+    }
+    .acc-btn:hover { background: #ffffff12; color: var(--text); border-color: var(--muted); }
+    .acc-btn:active { transform: scale(.96); }
+    .acc-btn .btn-dot { width: 7px; height: 7px; border-radius: 50%;
+      background: var(--red); transition: background .25s; }
+    .acc-btn.on { background: #2dd4a015; color: var(--green); border-color: #2dd4a055; }
+    .acc-btn.on .btn-dot { background: var(--green); }
+
+    /* Feed section */
+    #sub-selector {
+      display: flex; gap: .6rem; flex-wrap: wrap;
+      padding: .9rem 1.2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .sub-tab {
+      padding: .35rem .9rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: .82rem; font-weight: 600; cursor: pointer;
+      text-transform: capitalize;
+      transition: background .2s, color .2s, border-color .2s;
+    }
+    .sub-tab:hover { color: var(--text); border-color: var(--muted); }
+    .sub-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .feed-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .55rem 1.2rem;
+      border-bottom: 1px solid var(--border);
+      font-size: .76rem; color: var(--muted);
+    }
+    #feed-sub-label { font-weight: 600; color: var(--accent); text-transform: capitalize; }
+    .clear-btn {
+      background: none; border: 1px solid var(--border); color: var(--muted);
+      border-radius: 6px; padding: .22rem .6rem; cursor: pointer; font-size: .72rem;
+      transition: color .2s, border-color .2s;
+    }
+    .clear-btn:hover { color: var(--text); border-color: var(--muted); }
+
+    #pub-filter {
+      display: flex; gap: .5rem; flex-wrap: wrap;
+      padding: .65rem 1.2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .pub-pill {
+      padding: .2rem .65rem;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-size: .72rem; font-weight: 600; cursor: pointer;
+      text-transform: capitalize;
+      transition: background .2s, color .2s, border-color .2s;
+    }
+    .pub-pill.active { background: var(--amber); color: #000; border-color: var(--amber); }
+
+    .feed {
+      overflow-y: auto; max-height: 320px;
+      padding: .6rem 1rem 1rem;
+      display: flex; flex-direction: column; gap: .4rem;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: .78rem;
+    }
+    .feed::-webkit-scrollbar { width: 5px; }
+    .feed::-webkit-scrollbar-track { background: transparent; }
+    .feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .msg {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .42rem .75rem;
+      display: grid;
+      grid-template-columns: min-content 1fr auto;
+      align-items: center;
+      gap: .3rem .7rem;
+      animation: fadeIn .18s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(3px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .msg .ts        { color: var(--muted); font-size: .68rem; white-space: nowrap; }
+    .msg .pub-badge { font-size: .65rem; color: var(--amber); font-weight: 600; white-space: nowrap; }
+    .msg .topic     { color: var(--accent); word-break: break-all; }
+    .msg .value     { color: var(--green); font-weight: 700; text-align: right; white-space: nowrap; }
+    .msg .ts        { grid-column: 2 / 4; grid-row: 1; }
+    .msg .pub-badge { grid-column: 1;     grid-row: 2; }
+    .msg .topic     { grid-column: 2;     grid-row: 2; }
+    .msg .value     { grid-column: 3;     grid-row: 1 / 3; }
+
+    .empty-note {
+      color: var(--muted); font-size: .82rem; text-align: center;
+      padding: 2.5rem 0; font-style: italic; font-family: var(--font);
+    }
+
+    /* Status bar */
+    #status-bar {
+      font-size: .75rem; color: var(--muted);
+      display: flex; align-items: center; gap: .5rem;
+    }
+    #ws-dot { width: 8px; height: 8px; border-radius: 50%;
+      background: var(--red); transition: background .3s; }
+    #ws-dot.connected { background: var(--green); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>IoT <span>Access Control</span></h1>
+  <p>Manage which subscribers can receive data from each publisher</p>
+</header>
+
+<!-- Permission Matrix -->
+<div class="section">
+  <div class="section-title">Access Permissions</div>
+  <div id="matrix-wrap">
+    <table id="matrix-table">
+      <thead><tr id="matrix-head"><th class="row-head">Publisher</th></tr></thead>
+      <tbody id="matrix-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Live Feed -->
+<div class="section" id="feed-section">
+  <div class="section-title">Live Data Feed</div>
+  <div id="sub-selector"></div>
+  <div class="feed-toolbar">
+    <span>Viewing: <span id="feed-sub-label">—</span></span>
+    <button class="clear-btn" onclick="clearFeed()">Clear</button>
+  </div>
+  <div id="pub-filter"></div>
+  <div class="feed" id="feed"></div>
+</div>
+
+<div id="status-bar">
+  <div id="ws-dot"></div>
+  <span id="ws-label">WebSocket disconnected</span>
+</div>
+
+<script>
+// Runtime state
+let subscribers = [];
+let publishers  = [];
+let access      = {}; // access[sub][pub] = bool
+let messages    = {}; // messages[sub] = [ {publisher, topic, payload, ts} ]
+let activeSub   = null;
+let activePubs  = new Set();
+
+// Bootstrap 
+async function init() {
+  const [cfgRes, stateRes] = await Promise.all([
+    fetch('/api/config'), fetch('/api/state')
+  ]);
+  const cfg   = await cfgRes.json();
+  const state = await stateRes.json();
+
+  subscribers = cfg.subscribers;
+  publishers  = cfg.publishers;
+
+  subscribers.forEach(s => {
+    access[s]   = { ...state[s] };
+    messages[s] = [];
+  });
+
+  buildMatrix();
+  buildSubTabs();
+  buildPubFilter();
+  selectSub(subscribers[0]);
+  connectWS();
+}
+
+// Access matrix
+function buildMatrix() {
+  const head = document.getElementById('matrix-head');
+  const body = document.getElementById('matrix-body');
+
+  subscribers.forEach(s => {
+    const th = document.createElement('th');
+    th.textContent = s;
+    head.appendChild(th);
+  });
+
+  publishers.forEach(pub => {
+    const tr = document.createElement('tr');
+    const labelTd = document.createElement('td');
+    labelTd.className = 'row-label';
+    labelTd.innerHTML = `<span class="pub-tag"><span class="pub-icon"></span>${pub}</span>`;
+    tr.appendChild(labelTd);
+
+    subscribers.forEach(sub => {
+      const td = document.createElement('td');
+      td.appendChild(makeBtn(sub, pub));
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+}
+
+function makeBtn(sub, pub) {
+  const on  = access[sub][pub];
+  const btn = document.createElement('button');
+  btn.className = 'acc-btn' + (on ? ' on' : '');
+  btn.id        = `btn-${sub}-${pub}`;
+  btn.innerHTML = `<span class="btn-dot"></span>${on ? 'Allowed' : 'Denied'}`;
+  btn.onclick   = () => toggleAccess(sub, pub);
+  return btn;
+}
+
+async function toggleAccess(sub, pub) {
+  const res  = await fetch(`/api/toggle/${sub}/${pub}`, { method: 'POST' });
+  const data = await res.json();
+  if (data.error) { console.error(data.error); return; }
+  access[sub][pub] = data.enabled;
+  const btn = document.getElementById(`btn-${sub}-${pub}`);
+  btn.className = 'acc-btn' + (data.enabled ? ' on' : '');
+  btn.innerHTML = `<span class="btn-dot"></span>${data.enabled ? 'Allowed' : 'Denied'}`;
+}
+
+// Subscriber tabs
+function buildSubTabs() {
+  const wrap = document.getElementById('sub-selector');
+  subscribers.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className   = 'sub-tab';
+    btn.id          = `tab-${s}`;
+    btn.textContent = s;
+    btn.onclick     = () => selectSub(s);
+    wrap.appendChild(btn);
+  });
+}
+
+function selectSub(s) {
+  activeSub = s;
+  activePubs.clear();
+  subscribers.forEach(n => document.getElementById(`tab-${n}`)?.classList.toggle('active', n === s));
+  publishers.forEach(p  => document.getElementById(`pill-${p}`)?.classList.remove('active'));
+  document.getElementById('feed-sub-label').textContent = s;
+  renderFeed();
+}
+
+// Publisher filter pills
+function buildPubFilter() {
+  const wrap = document.getElementById('pub-filter');
+  publishers.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className   = 'pub-pill';
+    btn.id          = `pill-${p}`;
+    btn.textContent = p;
+    btn.onclick     = () => togglePubFilter(p);
+    wrap.appendChild(btn);
+  });
+}
+
+function togglePubFilter(p) {
+  if (activePubs.has(p)) { activePubs.delete(p); document.getElementById(`pill-${p}`).classList.remove('active'); }
+  else                   { activePubs.add(p);    document.getElementById(`pill-${p}`).classList.add('active'); }
+  renderFeed();
+}
+
+// Feed rendering
+const MAX_MSGS = 120;
+
+function renderFeed() {
+  const feedEl = document.getElementById('feed');
+  if (!activeSub) return;
+  const list = messages[activeSub]
+    .filter(m => activePubs.size === 0 || activePubs.has(m.publisher))
+    .slice(-MAX_MSGS).reverse();
+
+  if (list.length === 0) {
+    feedEl.innerHTML = `<div class="empty-note">No messages yet for <strong>${activeSub}</strong>${
+      activePubs.size ? ' with active filters' : ''}.</div>`;
+    return;
+  }
+  feedEl.innerHTML = '';
+  list.forEach(m => feedEl.appendChild(buildMsgEl(m)));
+}
+
+function buildMsgEl(m) {
+  const div   = document.createElement('div');
+  div.className = 'msg';
+  const short = m.topic.split('/').slice(-2).join('/');
+  div.innerHTML = `
+    <span class="ts">${m.ts}</span>
+    <span class="pub-badge">${escHtml(m.publisher)}</span>
+    <span class="topic">${escHtml(short)}</span>
+    <span class="value">${escHtml(m.payload)}</span>`;
+  return div;
+}
+
+function clearFeed() {
+  if (activeSub) messages[activeSub] = [];
+  renderFeed();
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// WebSocket
+const wsDot   = document.getElementById('ws-dot');
+const wsLabel = document.getElementById('ws-label');
+let ws, pingTimer, reconnectTimer;
+
+function connectWS() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${proto}://${location.host}/ws`);
+
+  ws.onopen = () => {
+    wsDot.classList.add('connected');
+    wsLabel.textContent = 'WebSocket connected';
+    clearTimeout(reconnectTimer);
+    pingTimer = setInterval(() => ws.readyState === 1 && ws.send('ping'), 20000);
+  };
+  ws.onclose = () => {
+    clearInterval(pingTimer);
+    wsDot.classList.remove('connected');
+    wsLabel.textContent = 'WebSocket disconnected — reconnecting…';
+    reconnectTimer = setTimeout(connectWS, 3000);
+  };
+  ws.onerror = () => ws.close();
+  ws.onmessage = e => {
+    const msg = JSON.parse(e.data);
+    const sub = msg.subscriber;
+    if (!messages[sub]) return;
+    const entry = { publisher: msg.publisher, topic: msg.topic,
+                    payload: msg.payload, ts: new Date().toLocaleTimeString() };
+    messages[sub].push(entry);
+    if (messages[sub].length > MAX_MSGS * 2) messages[sub].splice(0, MAX_MSGS);
+
+    if (sub === activeSub && (activePubs.size === 0 || activePubs.has(entry.publisher))) {
+      const feedEl = document.getElementById('feed');
+      feedEl.querySelector('.empty-note')?.remove();
+      feedEl.insertBefore(buildMsgEl(entry), feedEl.firstChild);
+      while (feedEl.children.length > MAX_MSGS) feedEl.removeChild(feedEl.lastChild);
+    }
+  };
+}
+
+// Start
+init();
+</script>
+</body>
+</html>
