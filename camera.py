@@ -5,7 +5,7 @@ MY_ID = "ThisIsUniqueToMe"
 mqttBroker = "broker.emqx.io" 
 count = 1
 
-client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, "Camera_Unique_ID_456")
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, "MainDoor_Camera1")
 
 try:
     client.connect(mqttBroker, 1883, 60)

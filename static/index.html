@@ -228,6 +228,11 @@
 </div>
 
 <script>
+// Convert snake_case / lowercase keys to Title Case with spaces
+function formatName(s) {
+  return s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
 // Runtime state
 let subscribers = [];
 let publishers  = [];
@@ -266,7 +271,7 @@ function buildMatrix() {
 
   subscribers.forEach(s => {
     const th = document.createElement('th');
-    th.textContent = s;
+    th.textContent = formatName(s);
     head.appendChild(th);
   });
 
@@ -274,7 +279,7 @@ function buildMatrix() {
     const tr = document.createElement('tr');
     const labelTd = document.createElement('td');
     labelTd.className = 'row-label';
-    labelTd.innerHTML = `<span class="pub-tag"><span class="pub-icon"></span>${pub}</span>`;
+    labelTd.innerHTML = `<span class="pub-tag"><span class="pub-icon"></span>${formatName(pub)}</span>`;
     tr.appendChild(labelTd);
 
     subscribers.forEach(sub => {
@@ -313,7 +318,7 @@ function buildSubTabs() {
     const btn = document.createElement('button');
     btn.className   = 'sub-tab';
     btn.id          = `tab-${s}`;
-    btn.textContent = s;
+    btn.textContent = formatName(s);
     btn.onclick     = () => selectSub(s);
     wrap.appendChild(btn);
   });
@@ -324,7 +329,7 @@ function selectSub(s) {
   activePubs.clear();
   subscribers.forEach(n => document.getElementById(`tab-${n}`)?.classList.toggle('active', n === s));
   publishers.forEach(p  => document.getElementById(`pill-${p}`)?.classList.remove('active'));
-  document.getElementById('feed-sub-label').textContent = s;
+  document.getElementById('feed-sub-label').textContent = formatName(s);
   renderFeed();
 }
 
@@ -335,7 +340,7 @@ function buildPubFilter() {
     const btn = document.createElement('button');
     btn.className   = 'pub-pill';
     btn.id          = `pill-${p}`;
-    btn.textContent = p;
+    btn.textContent = formatName(p);
     btn.onclick     = () => togglePubFilter(p);
     wrap.appendChild(btn);
   });
@@ -372,7 +377,7 @@ function buildMsgEl(m) {
   const short = m.topic.split('/').slice(-2).join('/');
   div.innerHTML = `
     <span class="ts">${m.ts}</span>
-    <span class="pub-badge">${escHtml(m.publisher)}</span>
+    <span class="pub-badge">${escHtml(formatName(m.publisher))}</span>
     <span class="topic">${escHtml(short)}</span>
     <span class="value">${escHtml(m.payload)}</span>`;
   return div;

@@ -13,6 +13,7 @@ BROKER = "broker.emqx.io"
 PUBLISHERS: dict[str, str] = {
     "thermostat": f"{MY_ID}/thermostat/#",
     "camera":     f"{MY_ID}/camera/#",
+    "lighting":   f"{MY_ID}/lighting/#",
 }
 
 
@@ -117,8 +118,9 @@ class SubscriberClient:
 
 
 SUBSCRIBERS: dict[str, SubscriberClient] = {
-    "localmonitor": SubscriberClient("localmonitor", "LocalMonitor_ACL_7f3a"),
-    "insurance":    SubscriberClient("insurance",    "Insurance_ACL_9b2c"),
+    "localmonitor":   SubscriberClient("localmonitor",   "LocalMonitor_ACL_7f3a"),
+    "insurance":      SubscriberClient("insurance",      "Insurance_ACL_9b2c"),
+    "fire_department": SubscriberClient("fire_department", "FireDepartment_ACL_5c4d"),
 }
 
 
