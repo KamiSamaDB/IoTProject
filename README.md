@@ -12,7 +12,6 @@ A web-based access control panel for MQTT IoT devices. A FastAPI backend manages
 ├── thermostat.py       # Publisher: temperature, humidity, mode
 ├── camera.py           # Publisher: camera snapshots
 ├── lighting.py         # Publisher: light status, brightness, color
-├── insurance.py        # Standalone subscriber (legacy reference)
 ├── localmonitor.py     # Standalone subscriber (legacy reference)
 ├── static/
 │   └── index.html      # Frontend (single-page app)
