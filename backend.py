@@ -7,7 +7,7 @@ import paho.mqtt.client as mqtt
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 
-MY_ID = "ThisIsUniqueToMe"
+MY_ID = "ENTER_YOUR_ID"
 BROKER = "broker.emqx.io"
 
 PUBLISHERS: dict[str, str] = {
